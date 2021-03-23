@@ -5,6 +5,10 @@ import edu.iis.mto.searcher.SequenceSearcher;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -112,4 +116,25 @@ class SimilarityFinderTest {
 
     }
 
+    @Test
+    void testCallSearchMethodZeroTimes() throws NoSuchFieldException, IllegalAccessException {
+        int[] array = {};
+        int[] array2 = {};
+        SequenceSearcher sequenceSearcher = new SequenceSearcher() {
+            private int counter = 0;
+
+            @Override
+            public SearchResult search(int elem, int[] sequence) {
+                counter++;
+                return SearchResult.builder().withFound(false).build();
+            }
+        };
+        SimilarityFinder finder = new SimilarityFinder(sequenceSearcher);
+        finder.calculateJackardSimilarity(array, array2);
+        Field field = sequenceSearcher.getClass().getDeclaredField("counter");
+        field.setAccessible(true);
+        int retValue = field.getInt(sequenceSearcher);
+        assertEquals(0, retValue);
+
+    }
 }
