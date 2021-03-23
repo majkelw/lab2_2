@@ -4,6 +4,8 @@ import edu.iis.mto.searcher.SearchResult;
 import edu.iis.mto.searcher.SequenceSearcher;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SimilarityFinderTest {
@@ -24,7 +26,7 @@ class SimilarityFinderTest {
         SequenceSearcher sequenceSearcher = new SequenceSearcher() {
             @Override
             public SearchResult search(int elem, int[] sequence) {
-                return  SearchResult.builder().withPosition(0).withFound(true).build();
+                return SearchResult.builder().withPosition(0).withFound(true).build();
             }
         };
         SimilarityFinder finder = new SimilarityFinder(sequenceSearcher);
@@ -57,7 +59,7 @@ class SimilarityFinderTest {
                 boolean[] types = {true, false};
                 for (int i = 0; i < array.length; i++) {
                     if (elem == array[i]) {
-                        searchResult = SearchResult.builder().withPosition(0).withFound(types[i]).build();
+                        searchResult = SearchResult.builder().withPosition(i).withFound(types[i]).build();
                     }
                 }
                 return searchResult;
@@ -78,7 +80,7 @@ class SimilarityFinderTest {
                 boolean[] types = {true, true, false, false, false, false};
                 for (int i = 0; i < array.length; i++) {
                     if (elem == array[i]) {
-                        searchResult = SearchResult.builder().withPosition(0).withFound(types[i]).build();
+                        searchResult = SearchResult.builder().withPosition(i).withFound(types[i]).build();
                     }
                 }
                 return searchResult;
@@ -86,6 +88,28 @@ class SimilarityFinderTest {
         };
         SimilarityFinder finder = new SimilarityFinder(sequenceSearcher);
         assertEquals(2.0 / 7.0, finder.calculateJackardSimilarity(array, array2));
+    }
+
+    @Test
+    void testCallSearchMethodTenTimes() throws NoSuchFieldException, IllegalAccessException {
+        int[] array = {675, 433, 756756, 32, 1, 11, 23543, 982, 555, 444};
+        int[] array2 = {34, 55, 123, 99, 12, 32, 4444, 15672};
+        SequenceSearcher sequenceSearcher = new SequenceSearcher() {
+            private int counter = 0;
+
+            @Override
+            public SearchResult search(int elem, int[] sequence) {
+                counter++;
+                return SearchResult.builder().withPosition(counter).withFound(false).build();
+            }
+        };
+        SimilarityFinder finder = new SimilarityFinder(sequenceSearcher);
+        finder.calculateJackardSimilarity(array, array2);
+        Field field = sequenceSearcher.getClass().getDeclaredField("counter");
+        field.setAccessible(true);
+        int retValue = field.getInt(sequenceSearcher);
+        assertEquals(10, retValue);
+
     }
 
 }
