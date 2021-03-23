@@ -3,13 +3,11 @@ package edu.iis.mto.similarity;
 import edu.iis.mto.searcher.SearchResult;
 import edu.iis.mto.searcher.SequenceSearcher;
 import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class SimilarityFinderTest {
@@ -136,5 +134,27 @@ class SimilarityFinderTest {
         int retValue = field.getInt(sequenceSearcher);
         assertEquals(0, retValue);
 
+    }
+
+    @Test
+    public void testInputAndOutputArraysMustBeTheSame() {
+        int[] array = {45, 45645, 2, 3, 55, 778};
+        int[] array2 = {613, 44, 55, 4, 243, 2, 3};
+        List<Integer> elementsArray = new ArrayList<>();
+        List<Integer> elementsArray2 = new ArrayList<>();
+        SequenceSearcher sequenceSearcher = new SequenceSearcher() {
+            @Override
+            public SearchResult search(int elem, int[] sequence) {
+                elementsArray.add(elem);
+                if(elementsArray2.isEmpty())
+                    elementsArray2.addAll(Arrays.stream(sequence).boxed().collect(Collectors.toList()));
+                return SearchResult.builder().withFound(false).build();
+            }
+        };
+        SimilarityFinder finder = new SimilarityFinder(sequenceSearcher);
+        finder.calculateJackardSimilarity(array, array2);
+        List<Integer> arrayList = Arrays.stream(array).boxed().collect(Collectors.toList());
+        List<Integer> array2List = Arrays.stream(array2).boxed().collect(Collectors.toList());
+        assertTrue(arrayList.equals(elementsArray) && array2List.equals(elementsArray2));
     }
 }
